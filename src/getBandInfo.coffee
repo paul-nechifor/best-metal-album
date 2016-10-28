@@ -23,13 +23,28 @@ getAlbumReviews = (album, cb) ->
   loadPage album.reviewsUrl, (err, $) ->
     return cb err if err
     album.reviews = $('.reviewBox').map ->
-      reviewTitle: $(@).find('.reviewTitle').text().trim()
+      authorAndDate = $(@).find('.reviewTitle + div')
+      titleParts = $(@).find('.reviewTitle').text().trim().split ' - '
+      score: titleParts[titleParts.length - 1]
+      reviewTitle: titleParts.slice(0, titleParts.length - 1).join ' - '
       reviewContent: $(@).find('.reviewContent').html()
+      authorUrl: authorAndDate.find('a').attr 'href'
+      authorName: authorAndDate.find('a').text()
+      date: authorAndDate.text().trim().split(',').slice(1, 3).join(',').trim()
     .toArray()
     cb null
 
+fillAlbumPage = (album, cb) ->
+  return cb null unless album.albumUrl
+  loadPage album.albumUrl, (err, $) ->
+    return cb err if err
+    album.albumPage =
+      albumInfo: zipDtDds $, '#album_info dt', '#album_info dd'
+      cover:
+        imageUrl: $('#cover').attr 'href'
+    cb null
+
 fillInAlbums = (bandInfo, cb) ->
-  # return cb null ##########################
   loadPage albumsUrl(bandInfo.url), (err, $) ->
     return cb err if err
     labels = $('table thead th').map(-> labelToName $(@).text()).toArray()
@@ -40,7 +55,6 @@ fillInAlbums = (bandInfo, cb) ->
         albumUrl: domCells.eq(0).find('a').attr 'href'
         reviewsUrl: domCells.eq(-1).find('a').attr 'href'
         tableInfo: {}
-        pageInfo: {}
       for i in [0...labels.length]
         album.tableInfo[labels[i]] = cells[i]
       album
@@ -48,22 +62,26 @@ fillInAlbums = (bandInfo, cb) ->
 
     async.map bandInfo.albums, getAlbumReviews, (err) ->
       return cb err if err
-      cb null
+      async.map bandInfo.albums, fillAlbumPage, (err) ->
+        return cb err if err
+        cb null
+
+zipDtDds = ($, sel1, sel2) ->
+  labels = $(sel1).map(-> $(@).text().trim()).toArray()
+  values = $(sel2).map(-> $(@).text().trim()).toArray()
+  bandStats = {}
+  for i in [0...labels.length]
+    bandStats[labelToName labels[i]] = values[i]
+  bandStats
 
 getBandPageInfo = (url, cb) ->
   loadPage url, (err, $) ->
     return cb err if err
 
-    bandStatsLabels = $('#band_stats dt').map(-> $(@).text().trim()).toArray()
-    bandStatsValues = $('#band_stats dd').map(-> $(@).text().trim()).toArray()
-    bandStats = {}
-    for i in [0...bandStatsLabels.length]
-      bandStats[labelToName bandStatsLabels[i]] = bandStatsValues[i]
-
     cb null,
       url: url
       name: $('.band_name a').text()
-      bandStats: bandStats
+      bandStats: zipDtDds $, '#band_stats dt', '#band_stats dd'
       logoUrl: $('#logo').attr 'href'
       bandPhotoUrl: $('#photo').attr 'href'
 
