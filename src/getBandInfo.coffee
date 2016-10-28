@@ -1,9 +1,16 @@
-_ = require 'lodash'
 async = require 'async'
-cheerio = require 'cheerio'
-fs = require 'fs'
-request = require 'request'
 camelcase = require 'camelcase'
+cheerio = require 'cheerio'
+createHash = require 'sha.js'
+fs = require 'fs'
+request = require('throttled-request') require 'request'
+
+request.configure
+  requests: 20
+  milliseconds: 1000
+
+hash = (str) ->
+  createHash('sha256').update(str, 'utf8').digest 'hex'
 
 albumsUrl = (bandUrl) ->
   parts = bandUrl.split '/'
@@ -87,18 +94,30 @@ getBandPageInfo = (url, cb) ->
 
 getBandInfo = (url, cb) ->
   getBandPageInfo url, (err, bandInfo) ->
+    console.log url
     return cb err if err
     fillInAlbums bandInfo, (err) ->
       cb null, bandInfo
 
-main = (cb) ->
+getBands = (cb) ->
   jsonFile =  __dirname + '/../data/urls.json'
   fs.readFile jsonFile, (err, file) ->
     return cb err if err
-    json = JSON.parse file
-    url1 = 'http://www.metal-archives.com/bands/Nightwish/39'
-    getBandInfo url1, (err, info) ->
-      console.log JSON.stringify info, null, 2
+    # TODO: Filter out downloaded files.
+    urls = JSON.parse file
+    cb null, urls
+
+getAndWriteBandInfo = (url, cb) ->
+  getBandInfo url, (err, bandInfo) ->
+    return cb err if err
+    file = JSON.stringify bandInfo
+    name = __dirname + '/../bands/' + hash url
+    fs.writeFile name, file, 'utf8', cb
+
+main = (cb) ->
+  getBands (err, bands) ->
+    return cb err if err
+    async.eachSeries bands, getAndWriteBandInfo, cb
 
 main (err) ->
   throw err if err

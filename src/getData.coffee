@@ -1,4 +1,3 @@
-_ = require 'lodash'
 async = require 'async'
 cheerio = require 'cheerio'
 fs = require 'fs'
