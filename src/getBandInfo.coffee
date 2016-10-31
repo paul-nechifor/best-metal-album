@@ -6,7 +6,7 @@ fs = require 'fs'
 request = require('throttled-request') require 'request'
 
 request.configure
-  requests: 20
+  requests: 5
   milliseconds: 1000
 
 hash = (str) ->
@@ -101,11 +101,17 @@ getBandInfo = (url, cb) ->
 
 getBands = (cb) ->
   jsonFile =  __dirname + '/../data/urls.json'
-  fs.readFile jsonFile, (err, file) ->
+  fs.readdir __dirname + '/../bands', (err, bandsHashes) ->
     return cb err if err
-    # TODO: Filter out downloaded files.
-    urls = JSON.parse file
-    cb null, urls
+    downloadedBands = {}
+    downloadedBands[x] = true for x in bandsHashes
+    fs.readFile jsonFile, (err, file) ->
+      urls = JSON.parse file
+      urlsLeft = []
+      for url in urls
+        unless downloadedBands[hash url]
+          urlsLeft.push url
+      cb null, urlsLeft
 
 getAndWriteBandInfo = (url, cb) ->
   getBandInfo url, (err, bandInfo) ->
