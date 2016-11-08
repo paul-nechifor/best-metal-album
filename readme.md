@@ -1,6 +1,6 @@
-# Best Metal
+# Best Metal Album
 
-Determine what [Encyclopaedia Metallum][EM] considers the best albums.
+Determine what [Encyclopædia Metallum][em] considers the best albums.
 
 ## Usage
 
@@ -28,5 +28,5 @@ interested in analysing the data it's best if you get it from some other place.
 ISC
 
 
-[EM]: http://www.metal-archives.com/
+[em]: http://www.metal-archives.com/
 [ranking]: http://www.evanmiller.org/ranking-items-with-star-ratings.html

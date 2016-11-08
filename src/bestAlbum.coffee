@@ -1,8 +1,8 @@
 async = require 'async'
 fs = require 'fs'
 
-min_reviews = 7
-drop_difference = 70
+min_reviews = 8
+drop_difference = 80
 
 aggScores = (scores) ->
   avg = mean scores
@@ -25,9 +25,13 @@ getBandAlbums = (bandHash, cb) ->
       continue unless score >= 0
       albums.push
         band: band.name
+        emUrl: band.url
         name: album.tableInfo.name
         year: album.tableInfo.year
-        score: score
+        score: score + album.reviews.length / 4
+        actualScore: score
+        cover: album.albumPage.cover.imageUrl
+        logo: band.logoUrl
     cb null, albums
 
 main = (cb) ->
