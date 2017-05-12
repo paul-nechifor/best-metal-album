@@ -1,6 +1,6 @@
 # Best Metal Album
 
-Determine what [Encyclopædia Metallum][em] considers the best albums.
+Determine what metal album [Encyclopædia Metallum][em] considers the best.
 
 ## Usage
 
