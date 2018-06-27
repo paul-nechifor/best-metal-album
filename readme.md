@@ -1,3 +1,7 @@
+# This repository has been moved to [gitlab.com/paul-nechifor/best-metal-albums](http://gitlab.com/paul-nechifor/best-metal-albums).
+
+Old readme:
+
 # Best Metal Albums
 
 Determine what metal albums [Encyclopædia Metallum][em] considers the best.
